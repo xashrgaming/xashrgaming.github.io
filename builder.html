@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Builder | xashr.lol</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #000;
+        color: white;
+        font-family: Arial;
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            linear-gradient(#222 1px, transparent 1px),
+            linear-gradient(90deg, #222 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: moveGrid 12s linear infinite;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    @keyframes moveGrid {
+        0% { background-position: 0 0; }
+        100% { background-position: 200px 200px; }
+    }
+
+    /* EDITOR */
+    .editor-section {
+        width: 70%;
+        padding: 20px;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+    }
+
+    textarea {
+        flex: 1;
+        width: 100%;
+        background: black;
+        border: 2px solid #00aaff;
+        color: white;
+        font-size: 16px;
+        padding: 10px;
+        border-radius: 10px;
+        outline: none;
+    }
+
+    select {
+        background: #000;
+        border: 2px solid #00aaff;
+        color: #00aaff;
+        padding: 8px;
+        font-size: 16px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+
+    button {
+        margin-top: 10px;
+        padding: 12px 25px;
+        font-size: 18px;
+        border: none;
+        border-radius: 8px;
+        background: #00aaff;
+        cursor: pointer;
+        width: 200px;
+    }
+
+    button:hover {
+        background: #0088cc;
+    }
+
+    /* RIGHT: AI PANEL */
+    .helper-panel {
+        width: 30%;
+        background: rgba(0,0,0,0.7);
+        border-left: 2px solid #00aaff;
+        padding: 20px;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-box {
+        flex: 1;
+        border: 2px solid #00aaff;
+        border-radius: 10px;
+        padding: 10px;
+        overflow-y: auto;
+        background: rgba(0,0,0,0.4);
+        margin-bottom: 10px;
+    }
+
+    .msg {
+        margin-bottom: 10px;
+    }
+
+    .you {
+        color: #00aaff;
+    }
+
+    .ai {
+        color: #00ff99;
+    }
+
+    .ask-area input {
+        width: 80%;
+        padding: 8px;
+        border-radius: 8px;
+        border: none;
+    }
+
+    .ask-area button {
+        width: 18%;
+        padding: 8px;
+        margin-left: 2%;
+        font-size: 14px;
+    }
+</style>
+</head>
+
+<body>
+
+    <button style="
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px 20px;
+    background: #00aaff;
+    border: none;
+    border-radius: 10px;
+    color: black;
+    cursor: pointer;
+    z-index: 5;
+" onclick="history.back()">← Back</button>
+
+
+<div class="editor-section">
+    <h1>Build a Project</h1>
+
+    <select id="language">
+        <option value="html">JavaScript (HTML/JS)</option>
+        <option value="python">Python</option>
+        <option value="java">Java</option>
+    </select>
+
+    <textarea id="code"></textarea>
+
+    <button onclick="saveProject()">Save Project</button>
+    <button onclick="window.location.href='home.html'">Back</button>
+</div>
+
+<div class="helper-panel">
+    <h2>AI Helper</h2>
+
+    <div class="chat-box" id="chat"></div>
+
+    <div class="ask-area">
+        <input id="question" placeholder="Ask something...">
+        <button onclick="askAI()">Send</button>
+    </div>
+</div>
+
+<script>
+    function askAI() {
+        const q = document.getElementById("question").value.trim();
+        if (!q) return;
+    
+        chat.innerHTML += `<div class='msg you'>You: ${q}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+        document.getElementById("question").value = "";
+    
+        const lang = document.getElementById("language").value;
+        const code = document.getElementById("code").value;
+    
+        let answer = analyze(q, lang, code);
+    
+        chat.innerHTML += `<div class='msg ai'>AI: ${answer}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+    }
+    
+    /* ------------------------------------------------------------
+       ADVANCED OFFLINE AI ENGINE
+    ------------------------------------------------------------ */
+    
+    function analyze(q, lang, code) {
+    
+        q = q.toLowerCase();
+    
+        // Help with printing
+        if (q.includes("print")) {
+            if (lang === "python") return "Use print('Hello!')";
+            if (lang === "java") return "Use System.out.println(\"Hello!\");";
+            return "Use console.log('Hello!');"; // JavaScript
+        }
+    
+        // Help with functions
+        if (q.includes("function")) {
+            if (lang === "python")
+                return "Python functions:\n\ndef myFunction():\n    print('Hello')";
+            if (lang === "java")
+                return "Java method:\n\nvoid myMethod() {\n    System.out.println(\"Hello\");\n}";
+            return "JS function:\n\nfunction myFunc() {\n    console.log('Hello');\n}";
+        }
+    
+        // Help with variables
+        if (q.includes("variable")) {
+            if (lang === "python")
+                return "Python variable:\n\nname = 'Alex'";
+            if (lang === "java")
+                return "Java variable:\n\nString name = \"Alex\";";
+            return "JS variable:\n\nlet name = 'Alex';";
+        }
+    
+        // Loops
+        if (q.includes("loop")) {
+            if (lang === "python")
+                return "Python loop:\n\nfor i in range(5):\n    print(i)";
+            if (lang === "java")
+                return "Java loop:\n\nfor(int i=0;i<5;i++){ System.out.println(i); }";
+            return "JS loop:\n\nfor (let i=0; i<5; i++) { console.log(i); }";
+        }
+    
+        // Check for missing semicolon (JS, Java)
+        if ((lang === "html" || lang === "java") && code.includes("\n")) {
+            let badLines = [];
+            code.split("\n").forEach((line, i) => {
+                if (line.trim().length > 0 &&
+                    !line.trim().endsWith(";") &&
+                    !line.includes("if") &&
+                    !line.includes("for") &&
+                    !line.includes("function") &&
+                    !line.includes("{") &&
+                    !line.includes("}")) {
+    
+                    badLines.push(i + 1);
+                }
+            });
+    
+            if (badLines.length > 0)
+                return "You may be missing semicolons on lines: " + badLines.join(", ") +
+                       "\n(These languages require semicolons except in certain statements.)";
+        }
+    
+        // Python indentation check
+        if (lang === "python") {
+            const lines = code.split("\n");
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].startsWith(" ") && !lines[i - 1].endsWith(":")) {
+                    return "Python Warning:\nLine " + (i + 1) +
+                           " is indented but the previous line does not end with ':'";
+                }
+            }
+        }
+    
+        // Basic error spotting
+        if (code.includes("==") && lang === "python" && q.includes("error")) {
+            return "Python uses '==' for comparison — this is fine.\nIf you meant assignment, use '='.";
+        }
+    
+        // Detect missing brackets
+        if (lang !== "python") {
+            let open = (code.match(/{/g) || []).length;
+            let close = (code.match(/}/g) || []).length;
+    
+            if (open !== close) {
+                return "Bracket mismatch detected.\nYou have " + open + 
+                       " '{' but " + close + " '}'.";
+            }
+        }
+    
+        // If question includes "why" or "error"
+        if (q.includes("error") || q.includes("why")) {
+            return "Try checking your syntax.\n• Missing brackets {}\n• Missing semicolons\n• Wrong indentation\n• Wrong variable name spelling";
+        }
+    
+        // If user asks for help
+        if (q.includes("help"))
+            return "Tell me what you want to build and I’ll guide you.\nTry asking: 'how do I make a loop?' or 'why is my code not working?'";
+    
+        // Generic fallback
+        return "I’m not sure, but I can help if you ask about:\n• printing\n• loops\n• functions\n• variables\n• debugging errors";
+    }
+    </script>
+    
+
+</body>
+</html>

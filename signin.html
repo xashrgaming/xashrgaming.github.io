@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | xashr.lol</title>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(#222 1px, transparent 1px),
+                linear-gradient(90deg, #222 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: moveGrid 12s linear infinite;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            @keyframes moveGrid {
+                0% { background-position: 0 0; }
+                100% { background-position: 200px 200px; }
+            }
+        }
+
+        .form-container {
+            position: relative;
+            z-index: 2;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            width: 100%;
+        }
+
+        .button {
+            padding: 12px;
+            background: #00aaff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #0088cc;
+        }
+
+        a {
+            color: #00aaff;
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <h2>Sign In</h2>
+
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+
+        <button class="button" onclick="login()">Login</button>
+
+        <a href="#">Forgot Password?</a>
+        <a href="create.html">Create Account</a>
+        <a href="index.html">Back to Menu</a>
+    </div>
+
+    <script>
+        function login() {
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+
+            const saved = localStorage.getItem(user);
+
+            if (!saved) {
+                alert("Account not found, maybe try creating an account.");
+                return;
+            }
+
+            const account = JSON.parse(saved);
+
+            if (account.password === pass) {
+                localStorage.setItem("loggedInUser", user);
+                window.location.href = "home.html";
+
+            } else {
+                alert("Incorrect password.");
+            }
+        }
+    </script>
+
+</body>
+</html>

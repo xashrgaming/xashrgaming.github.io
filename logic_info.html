@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Interactive Logic | xashr.lol</title>
+
+<style>
+    body {
+        background: black;
+        color: white;
+        font-family: Arial;
+        padding: 20px;
+    }
+
+    /* TRON GRID */
+    body::before, body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+    }
+    body::before {
+        background-image:
+            linear-gradient(#0af 1px, transparent 1px),
+            linear-gradient(90deg, #0af 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: gridMove 12s linear infinite;
+        opacity: .4;
+    }
+    body::after {
+        background-image:
+            repeating-linear-gradient(to right, transparent 0, transparent 38px, rgba(0,200,255,.8) 39px, transparent 40px),
+            repeating-linear-gradient(to bottom, transparent 0, transparent 38px, rgba(0,200,255,.8) 39px, transparent 40px);
+        background-size: 40px 40px;
+        animation: moveH 2s linear infinite, moveV 3s linear infinite;
+        opacity: .7;
+    }
+
+    @keyframes gridMove { from{background-position:0 0;} to{background-position:200px 200px;} }
+    @keyframes moveH { from{background-position-x:0;} to{background-position-x:40px;} }
+    @keyframes moveV { from{background-position-y:0;} to{background-position-y:40px;} }
+
+    .infoBox {
+        position: relative;
+        z-index: 5;
+        background: rgba(0,0,0,0.65);
+        border: 2px solid #00aaff;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 20px;
+    }
+
+    h1, h2 {
+        color: #00aaff;
+    }
+
+    .inputLine { cursor: pointer; transition: 0.1s; }
+    .label { fill: #0af; font-size: 18px; }
+    .outOn { stroke: #00ff99 !important; filter: drop-shadow(0 0 6px #00ff99); }
+
+    .startBtn {
+        padding: 12px 32px;
+        background: #00ff99;
+        color: black;
+        border: none;
+        border-radius: 10px;
+        margin-top: 20px;
+        cursor: pointer;
+        font-size: 18px;
+    }
+</style>
+</head>
+<body>
+
+<button onclick="history.back()" style="
+    padding:10px 20px;background:#00aaff;color:black;border:none;border-radius:10px;
+    cursor:pointer;position:relative;z-index:5;">← Back</button>
+
+<div class="infoBox">
+
+    <h1 id="title">Loading...</h1>
+    <p id="description"></p>
+
+    <h2>Interactive Diagram</h2>
+    <div id="diagramBox"></div>
+    <div style="margin-top:10px;font-size:18px;color:#00ff99;">
+        Click wires to toggle inputs.
+    </div>
+
+    <h2>Truth Table</h2>
+    <div id="truthTableContainer"></div>
+
+    <h2>Use Cases</h2>
+    <ul id="useCases"></ul>
+
+    <button onclick="startLesson()" class="startBtn">Start Lesson</button>
+</div>
+
+<script>
+/* ======================================================
+   INPUTS AND STATE
+======================================================*/
+let A=0, B=0, S=0, R=0, D=0, J=0, K=0, T=0, CLK=0;
+
+/* Memory State */
+let Q = 0;
+let Qbar = 1;
+
+/* ======================================================
+   GATE LOGIC
+======================================================*/
+function gateOutput(type, A, B) {
+    switch(type) {
+        case "and": return A & B;
+        case "or": return A | B;
+        case "not": return A ? 0 : 1;
+        case "xor": return A ^ B;
+        case "nand": return (A & B) ? 0 : 1;
+        case "nor": return (A | B) ? 0 : 1;
+        case "xnor": return (A === B) ? 1 : 0;
+    }
+    return 0;
+}
+
+/* ======================================================
+   LATCH / FLIP-FLOP SIMULATION
+======================================================*/
+function simulateLatch(type) {
+
+    switch(type) {
+
+        case "sr_latch":
+            if (S && !R) { Q=1; Qbar=0; }
+            if (!S && R) { Q=0; Qbar=1; }
+            break;
+
+        case "d_latch":
+            if (CLK === 1) {
+                Q = D;
+                Qbar = 1 - D;
+            }
+            break;
+
+        case "jk_latch":
+            if (CLK === 1) {
+                if (!J && K) Q = 0;
+                if (J && !K) Q = 1;
+                if (J && K) Q = Q ? 0 : 1;
+                Qbar = 1 - Q;
+            }
+            break;
+
+        case "t_flipflop":
+            if (CLK === 1 && T === 1) {
+                Q = Q ? 0 : 1;
+                Qbar = 1 - Q;
+            }
+            break;
+
+        case "master_slave":
+            if (CLK === 1) Q = D;
+            else Qbar = 1 - Q;
+            break;
+    }
+}
+
+/* ======================================================
+   INTERACTIVE GATE DIAGRAMS (SVG)
+======================================================*/
+function interactiveGate(type) {
+    let OUT = gateOutput(type, A, B);
+
+    function col(v){ return v ? "#00ccff" : "#004466"; }
+    function out(v){ return v ? "outOn" : ""; }
+
+    const lineA = col(A);
+    const lineB = col(B);
+
+    return `
+        <svg width="280" height="160">
+
+            ${type !== "not" ? `
+                <line onclick="A=1-A;updateDiagram();" x1="20" y1="50" x2="80" y2="50"
+                      stroke="${lineA}" stroke-width="5" class="inputLine"/>
+                <line onclick="B=1-B;updateDiagram();" x1="20" y1="110" x2="80" y2="110"
+                      stroke="${lineB}" stroke-width="5" class="inputLine"/>
+            ` : `
+                <line onclick="A=1-A;updateDiagram();" x1="20" y1="80" x2="80" y2="80"
+                      stroke="${lineA}" stroke-width="5" class="inputLine"/>
+            `}
+
+            ${gateShape(type)}
+
+            <line x1="170" y1="80" x2="260" y2="80"
+                  stroke="${OUT ? "#00ff99" : "#003322"}"
+                  stroke-width="6"
+                  class="${out(OUT)}"/>
+
+        </svg>
+    `;
+}
+
+/* ======================================================
+   SHAPES FOR GATES
+======================================================*/
+function gateShape(type) {
+    switch(type) {
+
+        case "and":
+            return `<path d="M80 30 L130 30 A50 50 0 0 1 130 130 L80 130 Z"
+                stroke="#0af" fill="none" stroke-width="4"/>`;
+
+        case "or":
+            return `
+                <path d="M75 30 Q130 80 75 130 Q95 80 75 30"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <path d="M75 30 C135 30 135 130 75 130"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+            `;
+
+        case "not":
+            return `
+                <polygon points="80,30 80,130 150,80"
+                         stroke="#0af" fill="none" stroke-width="4"/>
+                <circle cx="165" cy="80" r="10"
+                        stroke="#0af" fill="none" stroke-width="4"/>
+            `;
+
+        case "xor":
+            return `
+                <path d="M65 30 Q115 80 65 130"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <path d="M80 30 Q140 30 140 80 Q140 130 80 130"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+            `;
+
+        case "nand":
+            return `
+                <path d="M80 30 L130 30 A50 50 0 1 1 130 130 L80 130 Z"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <circle cx="150" cy="80" r="10"
+                        stroke="#0af" fill="none" stroke-width="4"/>
+            `;
+
+        case "nor":
+            return `
+                <path d="M75 30 Q130 80 75 130 Q95 80 75 30"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <path d="M75 30 C135 30 135 130 75 130"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <circle cx="155" cy="80" r="10"
+                        stroke="#0af" fill="none" stroke-width="4"/>
+            `;
+
+        case "xnor":
+            return `
+                <path d="M65 30 Q115 80 65 130"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <path d="M80 30 Q140 30 140 80 Q140 130 80 130"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <circle cx="160" cy="80" r="10"
+                        stroke="#0af" fill="none" stroke-width="4"/>
+            `;
+    }
+}
+
+/* ======================================================
+   LATCH DIAGRAMS
+======================================================*/
+function drawLatch(type) {
+
+    simulateLatch(type);
+
+    function c(v){ return v ? "#00ccff" : "#004466"; }
+    function o(v){ return v ? "outOn" : ""; }
+
+    /* ---- SR LATCH ---- */
+    if (type === "sr_latch") {
+        return `
+            <svg width="350" height="200">
+
+                <text x="20" y="35" class="label">S</text>
+                <line onclick="S=1-S;updateDiagram();" x1="20" y1="50" x2="100" y2="50"
+                      stroke="${c(S)}" stroke-width="5" class="inputLine"/>
+
+                <text x="20" y="135" class="label">R</text>
+                <line onclick="R=1-R;updateDiagram();" x1="20" y1="150" x2="100" y2="150"
+                      stroke="${c(R)}" stroke-width="5" class="inputLine"/>
+
+                <path d="M100 20 Q160 50 100 80 Q130 50 100 20"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <path d="M100 20 C170 20 170 80 100 80"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+
+                <path d="M100 120 Q160 150 100 180 Q130 150 100 120"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <path d="M100 120 C170 120 170 180 100 180"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+
+                <line x1="170" y1="50" x2="260" y2="50"
+                      stroke="${c(Q)}" stroke-width="6" class="${o(Q)}"/>
+                <text x="270" y="55" class="label">Q = ${Q}</text>
+
+                <line x1="170" y1="150" x2="260" y2="150"
+                      stroke="${c(Qbar)}" stroke-width="6" class="${o(Qbar)}"/>
+                <text x="270" y="155" class="label">Q̅ = ${Qbar}</text>
+
+            </svg>`;
+    }
+
+    /* ---- D LATCH ---- */
+    if (type === "d_latch") {
+        return `
+            <svg width="350" height="200">
+
+                <text x="20" y="50" class="label">D</text>
+                <line onclick="D=1-D;updateDiagram();" x1="20" y1="70" x2="120" y2="70"
+                      stroke="${c(D)}" stroke-width="5" class="inputLine"/>
+
+                <text x="20" y="150" class="label">CLK</text>
+                <line onclick="CLK=1-CLK;updateDiagram();" x1="20" y1="170" x2="120" y2="170"
+                      stroke="${c(CLK)}" stroke-width="5" class="inputLine"/>
+
+                <rect x="120" y="40" width="100" height="120"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+
+                <text x="145" y="110" class="label">D-Latch</text>
+
+                <line x1="220" y1="100" x2="300" y2="100"
+                      stroke="${c(Q)}" stroke-width="6" class="${o(Q)}"/>
+                <text x="310" y="105" class="label">Q = ${Q}</text>
+
+            </svg>`;
+    }
+
+    /* ---- JK ---- */
+    if (type === "jk_latch") {
+        return `
+            <svg width="360" height="230">
+
+                <text x="20" y="40" class="label">J</text>
+                <line onclick="J=1-J;updateDiagram();" x1="20" y1="60" x2="120" y2="60"
+                      stroke="${c(J)}" stroke-width="5" class="inputLine"/>
+
+                <text x="20" y="120" class="label">K</text>
+                <line onclick="K=1-K;updateDiagram();" x1="20" y1="140" x2="120" y2="140"
+                      stroke="${c(K)}" stroke-width="5" class="inputLine"/>
+
+                <text x="20" y="200" class="label">CLK</text>
+                <line onclick="CLK=1-CLK;updateDiagram();" x1="20" y1="220" x2="120" y2="220"
+                      stroke="${c(CLK)}" stroke-width="5" class="inputLine"/>
+
+                <rect x="120" y="50" width="120" height="140"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+
+                <text x="160" y="130" class="label">JK</text>
+
+                <line x1="240" y1="120" x2="330" y2="120"
+                      stroke="${c(Q)}" stroke-width="6" class="${o(Q)}"/>
+                <text x="340" y="125" class="label">Q = ${Q}</text>
+
+            </svg>`;
+    }
+
+    /* ---- T Flip-Flop ---- */
+    if (type === "t_flipflop") {
+        return `
+            <svg width="360" height="230">
+
+                <text x="20" y="80" class="label">T</text>
+                <line onclick="T=1-T;updateDiagram();" x1="20" y1="100" x2="120" y2="100"
+                      stroke="${c(T)}" stroke-width="5" class="inputLine"/>
+
+                <text x="20" y="160" class="label">CLK</text>
+                <line onclick="CLK=1-CLK;updateDiagram();" x1="20" y1="180" x2="120" y2="180"
+                      stroke="${c(CLK)}" stroke-width="5" class="inputLine"/>
+
+                <rect x="120" y="60" width="120" height="140"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+
+                <text x="160" y="140" class="label">T</text>
+
+                <line x1="240" y1="130" x2="330" y2="130"
+                      stroke="${c(Q)}" stroke-width="6" class="${o(Q)}"/>
+                <text x="340" y="135" class="label">Q = ${Q}</text>
+
+            </svg>`;
+    }
+
+    /* ---- MASTER-SLAVE ---- */
+    if (type === "master_slave") {
+        return `
+            <svg width="420" height="250">
+
+                <text x="20" y="80" class="label">D</text>
+                <line onclick="D=1-D;updateDiagram();" x1="20" y1="100" x2="120" y2="100"
+                      stroke="${c(D)}" stroke-width="5" class="inputLine"/>
+
+                <text x="20" y="170" class="label">CLK</text>
+                <line onclick="CLK=1-CLK;updateDiagram();" x1="20" y1="190" x2="120" y2="190"
+                      stroke="${c(CLK)}" stroke-width="5" class="inputLine"/>
+
+                <rect x="120" y="60" width="120" height="140"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <text x="160" y="130" class="label">M</text>
+
+                <rect x="260" y="60" width="120" height="140"
+                      stroke="#0af" fill="none" stroke-width="4"/>
+                <text x="300" y="130" class="label">S</text>
+
+                <line x1="380" y1="130" x2="450" y2="130"
+                      stroke="${c(Q)}" stroke-width="6" class="${o(Q)}"/>
+                <text x="460" y="135" class="label">Q = ${Q}</text>
+
+            </svg>`;
+    }
+}
+
+/* ======================================================
+   MAIN REDRAW FUNCTION
+======================================================*/
+function updateDiagram() {
+    if (latchTypes.includes(id)) {
+        diagramBox.innerHTML = drawLatch(id);
+    } else {
+        diagramBox.innerHTML = interactiveGate(id);
+    }
+}
+
+/* ======================================================
+   TOPIC DATA (GATES + LATCHES + BINARY)
+======================================================*/
+const latchTypes = ["sr_latch","d_latch","jk_latch","t_flipflop","master_slave"];
+
+const topics = {
+
+    /* ------------------ BINARY SECTION ------------------ */
+    binary_basics: {
+        title: "Binary Basics",
+        desc: "Binary is the base‑2 number system using only 0 and 1.",
+        table: [],
+        uses: ["Computers", "Digital circuits", "Networking", "Data"]
+    },
+
+    how_binary_works: {
+        title: "How Binary Works",
+        desc: "Binary represents numbers using powers of 2.",
+        table: [],
+        uses: ["Counting", "CPU operations", "Arithmetic"]
+    },
+
+    bitwise_ops: {
+        title: "Bitwise Operators",
+        desc: "Bitwise operations manipulate data at the bit level.",
+        table: [],
+        uses: ["Fast math", "Crypto", "Graphics", "Drivers"]
+    },
+
+    bin_converter: {
+        title: "Binary Converter",
+        desc: "Convert between binary and decimal values.",
+        table: [],
+        uses: ["Programming", "Math", "Logic design"]
+    },
+
+    /* ------------------ GATES ------------------ */
+    and:{title:"AND Gate",desc:"Outputs 1 if A AND B are 1.",
+    table:[["A","B","OUT"],["0","0","0"],["0","1","0"],["1","0","0"],["1","1","1"]],
+    uses:["Logic circuits","Decision systems"]},
+
+    or:{title:"OR Gate",desc:"Outputs 1 if A OR B is 1.",
+    table:[["A","B","OUT"],["0","0","0"],["0","1","1"],["1","0","1"],["1","1","1"]],
+    uses:["Controls","Trigger logic"]},
+
+    not:{title:"NOT Gate",desc:"Outputs the inverse of the input.",
+    table:[["A","OUT"],["0","1"],["1","0"]],
+    uses:["Inverter","Signal control"]},
+
+    xor:{title:"XOR Gate",desc:"1 when inputs differ.",
+    table:[["A","B","OUT"],["0","0","0"],["0","1","1"],["1","0","1"],["1","1","0"]],
+    uses:["Adders","Parity"]},
+
+    nand:{title:"NAND Gate",desc:"Universal gate.",
+    table:[["A","B","OUT"],["0","0","1"],["0","1","1"],["1","0","1"],["1","1","0"]],
+    uses:["Everything","Memory"]},
+
+    nor:{title:"NOR Gate",desc:"Universal gate.",
+    table:[["A","B","OUT"],["0","0","1"],["0","1","0"],["1","0","0"],["1","1","0"]],
+    uses:["Latches","Control"]},
+
+    xnor:{title:"XNOR Gate",desc:"1 when equal.",
+    table:[["A","B","OUT"],["0","0","1"],["0","1","0"],["1","0","0"],["1","1","1"]],
+    uses:["Equality","Compare"]},
+
+    /* ------------------ LATCHES ------------------ */
+    sr_latch:{title:"SR Latch",desc:"Stores 1 bit using S,R.",table:[],uses:["Memory"]},
+    d_latch:{title:"D Latch",desc:"Captures D when CLK=1.",table:[],uses:["RAM"]},
+    jk_latch:{title:"JK Flip-Flop",desc:"No invalid states.",table:[],uses:["Counters"]},
+    t_flipflop:{title:"T Flip-Flop",desc:"Toggles on clock.",table:[],uses:["Clocks"]},
+    master_slave:{title:"Master-Slave",desc:"Stable latch timing.",table:[],uses:["Sync"]}
+};
+
+let id = localStorage.getItem("logicTopic");
+let topic = topics[id];
+
+document.getElementById("title").textContent = topic.title;
+document.getElementById("description").textContent = topic.desc;
+
+/* Build truth table (if any) */
+if (topic.table.length) {
+    let html = "<table style='border-collapse:collapse;width:250px;'>";
+    topic.table.forEach(r=>{
+        html+="<tr>";
+        r.forEach(c=> html+=`<td style="border:1px solid #00aaff;padding:6px;text-align:center;">${c}</td>`);
+        html+="</tr>";
+    });
+    html+="</table>";
+    document.getElementById("truthTableContainer").innerHTML = html;
+} else {
+    document.getElementById("truthTableContainer").innerHTML = "<p>No truth table for this topic.</p>";
+}
+
+/* Add use cases */
+topic.uses.forEach(u=>{
+    let li=document.createElement("li");
+    li.textContent=u;
+    document.getElementById("useCases").appendChild(li);
+});
+
+/* Draw first diagram */
+updateDiagram();
+
+/* Lesson button */
+function startLesson() {
+    window.location.href = "run.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Run | xashr.lol</title>
+
+<style>
+    body {
+        background: black;
+        color: white;
+        font-family: Arial;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #00aaff;
+    }
+
+    select, button {
+        margin: 10px 5px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 2px solid #00aaff;
+        background: black;
+        color: #00aaff;
+        font-size: 16px;
+    }
+
+    iframe, pre, canvas {
+        width: 100%;
+        height: 75vh;
+        margin-top: 20px;
+        border: 2px solid #00aaff;
+        background: black;
+        border-radius: 10px;
+    }
+</style>
+
+<!-- Pyodide (Python in Browser) -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+
+</head>
+<body>
+
+    <button style="
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px 20px;
+    background: #00aaff;
+    border: none;
+    border-radius: 10px;
+    color: black;
+    cursor: pointer;
+    z-index: 5;
+" onclick="history.back()">← Back</button>
+
+
+<h1>Run Your Code</h1>
+
+<!-- LANGUAGE SELECTOR FOR USER PROJECTS -->
+<select id="runLang">
+    <option value="html">JavaScript (HTML/JS)</option>
+    <option value="python">Python</option>
+    <option value="java">Java</option>
+</select>
+
+<button onclick="runProject()">Run</button>
+<button onclick="window.location.href='home.html'">Back</button>
+
+<div id="outputArea"></div>
+
+<script>
+
+/* ----------------------------------------------------
+   PYTHON COURSES (AUTO-LOADED IF SELECTED)
+---------------------------------------------------- */
+
+const courses = {
+    python_basics: `
+print("Hello, world!")
+print("Welcome to Python learning!")
+
+x = 5
+y = 10
+print("x + y =", x + y)
+`,
+
+    python_variables: `
+name = "Alice"
+age = 15
+score = 98.5
+
+print("Name:", name)
+print("Age:", age)
+print("Score:", score)
+`,
+
+    python_loops: `
+for i in range(5):
+    print("Loop index:", i)
+
+print("Done!")
+`,
+
+    python_functions: `
+def greet(name):
+    print("Hello,", name)
+
+greet("Alex")
+greet("Sam")
+`,
+
+    python_classes: `
+class Player:
+    def __init__(self, name, hp):
+        self.name = name
+        self.hp = hp
+
+    def hit(self):
+        self.hp -= 1
+        print(self.name, "was hit! HP now:", self.hp)
+
+p = Player("Alex", 5)
+p.hit()
+p.hit()
+`,
+
+    python_game: `
+# Python Game (Pyodide Canvas)
+
+import js
+
+canvas = js.document.getElementById("pyCanvas")
+ctx = canvas.getContext("2d")
+
+x = 20
+
+def loop(*args):
+    global x
+    ctx.clearRect(0,0,canvas.width,canvas.height)
+    ctx.fillStyle = "white"
+    ctx.fillRect(x, 100, 50, 50)
+    x += 1
+    js.requestAnimationFrame(loop)
+
+loop()
+`
+};
+
+
+/* ----------------------------------------------------
+   MAIN RUN FUNCTION
+---------------------------------------------------- */
+async function runProject() {
+    const out = document.getElementById("outputArea");
+    out.innerHTML = "";
+
+    const courseId = localStorage.getItem("activeCourse");
+    const userCode = localStorage.getItem("project1");
+    const userLang = document.getElementById("runLang").value;
+
+    /* ----------------------------------------------
+       1. CHECK IF A PYTHON COURSE IS SELECTED
+    ---------------------------------------------- */
+    if (courseId && courses[courseId]) {
+
+        // GAME COURSE → NEED CANVAS
+        if (courseId === "python_game") {
+            out.innerHTML = `
+                <canvas id="pyCanvas" width="600" height="400"></canvas>
+                <pre id="pyOut"></pre>
+            `;
+            try {
+                const py = await loadPyodide();
+                await py.runPythonAsync(courses[courseId]);
+            } catch (err) {
+                document.getElementById("pyOut").textContent = err;
+            }
+            return;
+        }
+
+        // NORMAL PYTHON TEXT COURSE
+        out.innerHTML = `<pre id="pyOut">Running Python...</pre>`;
+        try {
+            const py = await loadPyodide();
+            let r = await py.runPythonAsync(courses[courseId]);
+            document.getElementById("pyOut").textContent = r || "Execution finished.";
+        } catch (err) {
+            document.getElementById("pyOut").textContent = err;
+        }
+        return;
+    }
+
+
+    /* ----------------------------------------------
+       2. FALLBACK: USER CREATED PROJECT
+    ---------------------------------------------- */
+
+    if (!userCode) {
+        out.innerHTML = "<pre>No saved project found.</pre>";
+        return;
+    }
+
+
+    /* ------------------------
+       JavaScript / HTML RUNNER
+    -------------------------*/
+    if (userLang === "html") {
+        const iframe = document.createElement("iframe");
+        iframe.srcdoc = userCode;
+        out.appendChild(iframe);
+        return;
+    }
+
+
+    /* ------------------------
+       Python Runner (Pyodide)
+    -------------------------*/
+    if (userLang === "python") {
+        out.innerHTML = `<pre id="pyOut">Running Python...</pre>`;
+        try {
+            const py = await loadPyodide();
+            let r = await py.runPythonAsync(userCode);
+            document.getElementById("pyOut").textContent = r || "Done.";
+        } catch (err) {
+            document.getElementById("pyOut").textContent = err;
+        }
+        return;
+    }
+
+
+    /* ------------------------
+       Java Runner (Placeholder)
+    -------------------------*/
+    if (userLang === "java") {
+        out.innerHTML = `
+<pre>
+Java execution coming soon.
+Your code:
+------------------------
+${userCode}
+</pre>`;
+        return;
+    }
+
+    out.innerHTML = "<pre>Unknown language selected.</pre>";
+}
+
+</script>
+
+</body>
+</html>

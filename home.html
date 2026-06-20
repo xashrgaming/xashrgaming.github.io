@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Home | xashr.lol</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial;
+        color: white;
+        background: #000;
+    }
+
+    /* TRON MOVING GRID */
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            linear-gradient(#0af 1px, transparent 1px),
+            linear-gradient(90deg, #0af 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: gridMove 12s linear infinite;
+        pointer-events: none;
+        opacity: 0.4;
+        z-index: 1;
+    }
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            repeating-linear-gradient(to right, transparent 0, transparent 38px, rgba(0,200,255,.8) 39px, transparent 40px),
+            repeating-linear-gradient(to bottom, transparent 0, transparent 38px, rgba(0,200,255,.8) 39px, transparent 40px);
+        background-size: 40px 40px;
+        animation: moveH 2s linear infinite, moveV 3s linear infinite;
+        pointer-events: none;
+        opacity: .7;
+        z-index: 2;
+    }
+
+    @keyframes gridMove { 
+        0% { background-position: 0 0; }
+        100% { background-position: 200px 200px; }
+    }
+    @keyframes moveH {
+        0% { background-position-x: 0; }
+        100% { background-position-x: 40px; }
+    }
+    @keyframes moveV {
+        0% { background-position-y: 0; }
+        100% { background-position-y: 40px; }
+    }
+
+    /* Back Button */
+    .backBtn {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        padding: 10px 20px;
+        background: #00aaff;
+        border: none;
+        border-radius: 10px;
+        color: black;
+        cursor: pointer;
+        z-index: 5;
+        font-size: 15px;
+    }
+
+    /* Layout Wrapper */
+    .wrapper {
+        position: relative;
+        z-index: 5;
+        max-width: 1100px;
+        margin: auto;
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+    }
+
+    /* DEV TOOLS BOX LEFT */
+    .devToolsBox {
+        flex: 2;
+        padding: 25px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #00aaff;
+        border-radius: 12px;
+    }
+
+    .devToolsTitle {
+        font-size: 24px;
+        color: #00aaff;
+        text-align: center;
+    }
+
+    .toolGrid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .toolCard {
+        padding: 20px;
+        background: rgba(10,10,10,0.9);
+        border-radius: 10px;
+        border: 2px solid #00aaff;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .toolCard:hover {
+        background: rgba(0,40,60,0.6);
+    }
+
+    /* RIGHT SIDEBAR */
+    .sidebar {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* PROFILE */
+    .profileBox {
+        background: rgba(0,0,0,0.6);
+        padding: 20px;
+        border: 2px solid #00aaff;
+        border-radius: 12px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
+        border: 3px solid #00aaff;
+        object-fit: cover;
+    }
+
+    #xpBar {
+        width: 120px;
+        height: 10px;
+        background: #222;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+
+    #xpFill {
+        height: 100%;
+        width: 0%;
+        background: #00ff99;
+    }
+
+    .logoutBtn {
+        margin-top: 10px;
+        padding: 10px 20px;
+        background: #ff4444;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        color: white;
+    }
+
+    /* LEARN PYTHON */
+    .learnBox {
+        padding: 20px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #00ff99;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        text-align: center;
+    }
+
+    .learnBox:hover {
+        background: rgba(20,60,40,0.6);
+    }
+
+    /* LEARN LOGIC GATES */
+    .logicBox {
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 2px solid #33d6ff;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        text-align: center;
+    }
+
+    .logicBox:hover {
+        background: rgba(0, 46, 60, 0.6);
+    }
+
+    /* LEARN LOGIC GATES */
+    .CookiesBox {
+        padding: 20px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #ff3333;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        text-align: center;
+    }
+
+    .CookiesBox:hover {
+        background: rgba(60,0,0,0.6);
+    }
+
+</style>
+</head>
+<body>
+
+<button class="backBtn" onclick="goBack()">← Back</button>
+
+<div class="wrapper">
+
+    <!-- LEFT: DEV TOOLS -->
+    <div class="devToolsBox">
+        <div class="devToolsTitle">Dev Tools</div>
+
+        <div class="toolGrid">
+
+            <div class="toolCard" onclick="go('builder.html')">🧱 Build Code</div>
+            <div class="toolCard" onclick="go('run.html')">▶ Run Code</div>
+            <div class="toolCard" onclick="go('this.html')">Cookies</div>
+            <div class="toolCard" onclick="go('settings.html')">⚙ Settings</div>
+            <div class="toolCard" onclick="alert('More tools soon!')">🔧 More Tools</div>
+
+        </div>
+    </div>
+
+    <!-- RIGHT: PROFILE + LEARNING -->
+    <div class="sidebar">
+
+        <!-- PROFILE -->
+        <div class="profileBox">
+            <img id="profileAvatar" class="avatar">
+
+            <div>
+                <div id="profileLevel" style="font-size:18px;font-weight:bold;">Level 1</div>
+                <div id="xpBar"><div id="xpFill"></div></div>
+                <button class="logoutBtn" onclick="logout()">Exit</button>
+            </div>
+        </div>
+
+        <!-- LEARN PYTHON -->
+        <div class="learnBox" onclick="go('learn.html')">
+            📘 Learn Python
+            <div style="font-size:14px;color:#00ff99;margin-top:5px;">Courses & Tutorials</div>
+        </div>
+
+        <!-- LEARN LOGIC GATES -->
+        <div class="logicBox" onclick="go('logic.html')">
+            🔴 Learn Logic Gates
+            <div style="font-size:14px;color:#44f3ff;margin-top:5px;">Digital Circuits • Gates • Components</div>
+        </div>
+
+        <!-- About Us -->
+        <div class="CookiesBox" onclick="go('This.html')">
+            Gimi Da Cookies
+            <div style="font-size:14px;color:#ff5144;margin-top:5px;">Learn about how this was made</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/* PROFILE DATA */
+let profile = JSON.parse(localStorage.getItem("profileData")) || {
+    xp: 0,
+    level: 1,
+    avatar: ""
+};
+
+function xpNeeded(level) {
+    return 100 + (level - 1) * 50;
+}
+
+function refreshProfile() {
+    document.getElementById("profileAvatar").src =
+        profile.avatar || "https://via.placeholder.com/70";
+
+    document.getElementById("profileLevel").textContent =
+        "Level " + profile.level;
+
+    let pct = (profile.xp / xpNeeded(profile.level)) * 100;
+    document.getElementById("xpFill").style.width = pct + "%";
+}
+
+refreshProfile();
+
+function logout() {
+    if (confirm("Exit your account?")) {
+        localStorage.removeItem("loggedInUser");
+        window.location.href = "login.html";
+    }
+}
+
+function go(page) { window.location.href = page; }
+function goBack() { history.back(); }
+</script>
+
+</body>
+</html>

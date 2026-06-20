@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Course Info | xashr.lol</title>
+
+<style>
+    body {
+        background: #000;
+        color: white;
+        font-family: Arial;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #00aaff;
+    }
+
+    .infoBox {
+        background: rgba(0,0,0,0.7);
+        border: 2px solid #00aaff;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+
+    .startBtn {
+        margin-top: 20px;
+        padding: 12px 25px;
+        background: #00ff99;
+        color: black;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    .startBtn:hover {
+        background: #00cc77;
+    }
+</style>
+</head>
+<body>
+
+<button onclick="history.back()" style="
+    padding:10px 20px;
+    background:#00aaff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;">← Back</button>
+
+<h1 id="title">Course</h1>
+
+<div class="infoBox">
+    <h2 id="sub">Description</h2>
+    <p id="desc">Loading...</p>
+
+    <h3>What You'll Learn</h3>
+    <ul id="learnList"></ul>
+
+    <button class="startBtn" onclick="startCourse()">Start Lesson</button>
+</div>
+
+<script>
+const course = localStorage.getItem("courseInfo");
+
+const info = {
+    vsc_install: {
+        title: "How to Install Visual Studio Code",
+        desc: "Learn how to download and install Visual Studio Code, the most popular code editor for Python and web development.",
+        learn: [
+            "Downloading VSC",
+            "Installing VSC on Windows/Mac/Linux",
+            "Installing Python extension",
+            "Running your first Python file"
+        ]
+    },
+    python_basics: {
+        title: "Python Basics",
+        desc: "Learn the foundations of Python including printing, numbers, and simple logic.",
+        learn: ["Printing text", "Basic math", "Simple code structure"]
+    },
+    python_variables: {
+        title: "Variables & Data Types",
+        desc: "Understand how to store data in Python and work with types.",
+        learn: ["Strings", "Numbers", "Booleans", "Conversion"]
+    },
+    python_loops: {
+        title: "Loops & Repetition",
+        desc: "Learn how to run code repeatedly using loops.",
+        learn: ["for loops", "while loops", "loop control"]
+    },
+    python_functions: {
+        title: "Functions",
+        desc: "Learn how to organize and reuse code using functions.",
+        learn: ["def keyword", "Parameters", "Return values"]
+    },
+    python_classes: {
+        title: "Classes & OOP",
+        desc: "Learn object‑oriented programming with Python.",
+        learn: ["class keyword", "Objects", "Methods"]
+    },
+    python_game: {
+        title: "Simple Game Example",
+        desc: "A basic animated game using Python in the browser.",
+        learn: ["Canvas", "Animation", "Movement"]
+    }
+};
+
+// Fill UI
+document.getElementById("title").textContent = info[course].title;
+document.getElementById("desc").textContent = info[course].desc;
+
+info[course].learn.forEach(item => {
+    let li = document.createElement("li");
+    li.textContent = item;
+    document.getElementById("learnList").appendChild(li);
+});
+
+function startCourse() {
+    localStorage.setItem("activeCourse", course);
+    window.location.href = "installvsc.html";
+}
+</script>
+
+</body>
+</html>

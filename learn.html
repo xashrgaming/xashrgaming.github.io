@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Learn Python | xashr.lol</title>
+
+<style>
+    body {
+        background: black;
+        color: white;
+        font-family: Arial;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #00aaff;
+    }
+
+    .course {
+        border: 2px solid #00aaff;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .course:hover {
+        background: #00141c;
+    }
+
+    .level {
+        font-size: 14px;
+        color: #00ff99;
+    }
+</style>
+</head>
+
+<body>
+
+<button onclick="history.back()" style="
+    padding:10px 20px;
+    background:#00aaff;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;">← Back</button>
+
+<h1>Learn</h1>
+
+<!-- NEW FIRST COURSE -->
+<div class="course" onclick="openCourseInfo('vsc_install')">
+    How to Install Visual Studio Code (VSC)
+    <div class="level">Setup</div>
+</div>
+
+<div class="course" onclick="openCourseInfo('python_basics')">
+    Python Basics
+    <div class="level">Beginner</div>
+</div>
+
+<div class="course" onclick="openCourseInfo('python_variables')">
+    Variables & Data Types
+    <div class="level">Beginner</div>
+</div>
+
+<div class="course" onclick="openCourseInfo('python_loops')">
+    Loops & Repetition
+    <div class="level">Beginner</div>
+</div>
+
+<div class="course" onclick="openCourseInfo('python_functions')">
+    Functions
+    <div class="level">Intermediate</div>
+</div>
+
+<div class="course" onclick="openCourseInfo('python_classes')">
+    Classes & OOP
+    <div class="level">Intermediate</div>
+</div>
+
+<div class="course" onclick="openCourseInfo('python_game')">
+    Simple Game Example
+    <div class="level">Intermediate</div>
+</div>
+
+<script>
+function openCourseInfo(id) {
+    localStorage.setItem("courseInfo", id);
+    window.location.href = "course_info.html";
+}
+</script>
+
+</body>
+</html>

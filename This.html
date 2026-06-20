@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cookie Question</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000000;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* TRON MOVING GRID */
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            linear-gradient(#0af 1px, transparent 1px),
+            linear-gradient(90deg, #0af 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: gridMove 12s linear infinite;
+        pointer-events: none;
+        opacity: 0.4;
+        z-index: 1;
+    }
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            repeating-linear-gradient(to right, transparent 0, transparent 38px, rgba(0,200,255,.8) 39px, transparent 40px),
+            repeating-linear-gradient(to bottom, transparent 0, transparent 38px, rgba(0,200,255,.8) 39px, transparent 40px);
+        background-size: 40px 40px;
+        animation: moveH 2s linear infinite, moveV 3s linear infinite;
+        pointer-events: none;
+        opacity: .7;
+        z-index: 2;
+    }
+
+    @keyframes gridMove { 
+        0% { background-position: 0 0; }
+        100% { background-position: 200px 200px; }
+    }
+    @keyframes moveH {
+        0% { background-position-x: 0; }
+        100% { background-position-x: 40px; }
+    }
+    @keyframes moveV {
+        0% { background-position-y: 0; }
+        100% { background-position-y: 40px; }
+    }
+
+    /* Back Button */
+    .backBtn {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        padding: 10px 20px;
+        background: #00aaff;
+        border: none;
+        border-radius: 10px;
+        color: black;
+        cursor: pointer;
+        z-index: 5;
+        font-size: 15px;
+    }
+
+        #container {
+            text-align: center;
+            opacity: 0;
+            transition: opacity 3s ease-in;
+        }
+
+        #question {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #00aaff;
+        }
+
+        button {
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        #yesBtn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        #yesBtn:hover {
+            background: #45A049;
+        }
+
+        #noBtn {
+            background: #d9534f;
+            color: white;
+        }
+
+        #noBtn:hover {
+            background: #c9302c;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="question">So... you want cookies?</div>
+    <button id="yesBtn", onclick="go('home.html')">Yes</button>
+    <button id="noBtn", onclick="go('home.html')">No</button>
+</div>
+
+<script>
+    // Fade in the container smoothly
+    window.onload = function () {
+        const container = document.getElementById("container");
+        if (container) {
+            container.style.opacity = "1";
+        }
+    };
+
+    // Button click handling with safe feedback
+    document.getElementById("yesBtn").onclick = function () {
+        go("home.html")
+    };
+
+    document.getElementById("noBtn").onclick = function () {
+        go("home.html")
+    };
+
+    function go(page) { window.location.href = page; }
+    function goBack() { history.back(); }
+</script>
+
+</body>
+</html>

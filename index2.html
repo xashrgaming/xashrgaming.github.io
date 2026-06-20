@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>xashr.lol | Welcome</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial;
+            background: #000;
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Animated Grid */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(#222 1px, transparent 1px),
+                linear-gradient(90deg, #222 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridMove 10s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes gridMove {
+            from { background-position: 0 0; }
+            to { background-position: 200px 200px; }
+        }
+
+        #traceCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .welcomeBox {
+            position: relative;
+            z-index: 3;
+            background: rgba(0,0,0,0.7);
+            border: 3px solid #00aaff;
+            border-radius: 20px;
+            padding: 40px;
+            width: 350px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #00aaff;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        p {
+            color: #ddd;
+            margin-bottom: 25px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .loginBtn { background: #00aaff; color: black; }
+        .loginBtn:hover { background: #0088cc; }
+        .signupBtn { background: #00ff99; color: black; }
+        .signupBtn:hover { background: #00cc77; }
+
+    </style>
+</head>
+
+<body>
+
+<canvas id="traceCanvas"></canvas>
+
+<div class="welcomeBox">
+    <h1>xashr.lol</h1>
+    <p>Your coding journey starts here.</p>
+    <button class="loginBtn" onclick="go('login.html')">Login</button>
+    <button class="signupBtn" onclick="go('about.html')">About Us</button>
+</div>
+
+<script>
+    function go(page) {
+        if (typeof page !== "string" || page.trim() === "") return;
+        window.location.href = page;
+    }
+
+    /* ============================================
+       TWO TRACERS — BLUE + GREEN (NO CROSS + FADE)
+    ============================================= */
+
+    const canvas = document.getElementById("traceCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function resize() {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+    }
+    resize();
+    addEventListener("resize", resize);
+
+    const grid = 40;
+
+    // Store all line segments (both tracers)
+    const segments = [];
+
+    // One visited map for both tracers (prevents overlapping)
+    const visited = new Set();
+
+    function key(x, y) {
+        return `${x},${y}`;
+    }
+
+    // Create a tracer object
+    function createTracer(color) {
+        const startX = Math.floor(Math.random() * canvas.width / grid) * grid;
+        const startY = Math.floor(Math.random() * canvas.height / grid) * grid;
+
+        visited.add(key(startX, startY));
+
+        return {
+            x: startX,
+            y: startY,
+            color: color
+        };
+    }
+
+    const tracerBlue = createTracer("blue");
+    const tracerGreen = createTracer("green");
+    const tracerOrange= createTracer("orange");
+
+    function randomDirection() {
+        const dirs = [
+            [grid, 0], [-grid, 0],
+            [0, grid], [0, -grid]
+        ];
+        return dirs[Math.floor(Math.random() * dirs.length)];
+    }
+
+    // Fade out effect
+    function fadeLines() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const s = segments[i];
+
+            s.alpha -= 0.015;
+
+            if (s.alpha <= 0) {
+                segments.splice(i, 1);
+                continue;
+            }
+
+            ctx.strokeStyle = `rgba(${s.color === "blue" ? "0,170,255" : "0,255,120"},${s.alpha})`;
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            ctx.moveTo(s.x1, s.y1);
+            ctx.lineTo(s.x2, s.y2);
+            ctx.stroke();
+        }
+
+        requestAnimationFrame(fadeLines);
+    }
+    fadeLines();
+
+    async function runTracer(tr) {
+        while (true) {
+            let dx, dy, newX, newY;
+            let valid = false;
+            let tries = 0;
+
+            while (!valid && tries < 10) {
+                tries++;
+                [dx, dy] = randomDirection();
+                newX = tr.x + dx;
+                newY = tr.y + dy;
+
+                if (newX < 0 || newX > canvas.width ||
+                    newY < 0 || newY > canvas.height)
+                    continue;
+
+                if (visited.has(key(newX, newY)))
+                    continue;
+
+                valid = true;
+            }
+
+            if (!valid) {
+                // Reset tracer at new random spot
+                tr.x = Math.floor(Math.random() * canvas.width / grid) * grid;
+                tr.y = Math.floor(Math.random() * canvas.height / grid) * grid;
+                visited.add(key(tr.x, tr.y));
+                continue;
+            }
+
+            // Save segment for fading trail
+            segments.push({
+                x1: tr.x + grid / 1.5,
+                y1: tr.y + grid / 1.5,
+                x2: newX + grid / 1.5,
+                y2: newY + grid / 1.5,
+                color: tr.color,
+                alpha: 1.0
+            });
+
+            // Move tracer
+            tr.x = newX;
+            tr.y = newY;
+
+            visited.add(key(tr.x, tr.y));
+
+            await new Promise(r => setTimeout(r, 100));
+        }
+    }
+
+    // Run TWO tracers at the same time
+    runTracer(tracerBlue);
+    runTracer(tracerGreen);
+    
+</script>
+
+</body>
+</html>

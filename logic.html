@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Logic | xashr.lol</title>
+
+<style>
+    body {
+        background: black;
+        color: white;
+        font-family: Arial;
+        padding: 20px;
+        margin-bottom: 100px;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            linear-gradient(#0af 1px, transparent 1px),
+            linear-gradient(90deg, #0af 1px, transparent 1px);
+        background-size: 40px 40px;
+        animation: gridMove 12s linear infinite;
+        pointer-events: none;
+        opacity: 0.4;
+        z-index: 1;
+    }
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            repeating-linear-gradient(to right, transparent 0, transparent 38px, rgba(0,200,255,.9) 39px, transparent 40px),
+            repeating-linear-gradient(to bottom, transparent 0, transparent 38px, rgba(0,200,255,.9) 39px, transparent 40px);
+        background-size: 40px 40px;
+        animation: moveH 2s linear infinite, moveV 3s linear infinite;
+        pointer-events: none;
+        opacity: .7;
+        z-index: 2;
+    }
+
+    @keyframes gridMove { from {background-position:0 0;} to {background-position:200px 200px;} }
+    @keyframes moveH { 0% {background-position-x:0;} 100% {background-position-x:40px;} }
+    @keyframes moveV { 0% {background-position-y:0;} 100% {background-position-y:40px;} }
+
+    .backBtn {
+        padding: 10px 20px;
+        background: #00aaff;
+        color: black;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 5;
+    }
+
+    h1, h2 {
+        color: #00aaff;
+        position: relative;
+        z-index: 5;
+    }
+
+    .sectionBox {
+        padding: 20px;
+        background: rgba(0,0,0,0.7);
+        border: 2px solid #00aaff;
+        border-radius: 15px;
+        margin-top: 25px;
+        position: relative;
+        z-index: 5;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .logicCard {
+        padding: 20px;
+        background: rgba(10,10,10,0.9);
+        border: 2px solid #00ff99;
+        border-radius: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 18px;
+        position: relative;
+        z-index: 5;
+    }
+    .logicCard:hover {
+        background: rgba(0, 40, 20, 0.6);
+        transform: scale(1.05);
+    }
+
+    .latchCard { border-color: #ffaa33; }
+    .latchCard:hover { background: rgba(60, 30, 0, 0.6); }
+
+    .compCard { border-color: #ff4444; }
+    .compCard:hover { background: rgba(60, 0, 0, 0.6); }
+
+    .binaryCard { border-color: #00ccff; }
+    .binaryCard:hover { background: rgba(0,40,80,0.6); }
+</style>
+</head>
+<body>
+
+<button class="backBtn" onclick="history.back()">← Back</button>
+
+<h1>Logic Course</h1>
+
+<!--  ██████  NEW BINARY SECTION  ██████ -->
+<div class="sectionBox">
+    <h2>Binary</h2>
+
+    <div class="grid">
+
+        <div class="logicCard binaryCard" onclick="openTopic('binary_basics')">
+            Binary Basics
+        </div>
+
+        <div class="logicCard binaryCard" onclick="openTopic('how_binary_works')">
+            How Binary Works
+        </div>
+
+        <div class="logicCard binaryCard" onclick="openTopic('bitwise_ops')">
+            Bitwise Operators
+        </div>
+
+        <div class="logicCard binaryCard" onclick="openTopic('bin_converter')">
+            Binary ↔ Decimal Converter
+        </div>
+
+    </div>
+</div>
+<!-- END BINARY SECTION -->
+
+
+<!-- GATES SECTION -->
+<div class="sectionBox">
+    <h2>Logic Gates</h2>
+
+    <div class="grid">
+        <div class="logicCard" onclick="openTopic('and')">AND</div>
+        <div class="logicCard" onclick="openTopic('or')">OR</div>
+        <div class="logicCard" onclick="openTopic('not')">NOT</div>
+        <div class="logicCard" onclick="openTopic('xor')">XOR</div>
+        <div class="logicCard" onclick="openTopic('nand')">NAND</div>
+        <div class="logicCard" onclick="openTopic('nor')">NOR</div>
+        <div class="logicCard" onclick="openTopic('xnor')">XNOR</div>
+    </div>
+</div>
+
+<!-- LATCHES -->
+<div class="sectionBox">
+    <h2>Latches & Flip-Flops</h2>
+
+    <div class="grid">
+        <div class="logicCard latchCard" onclick="openTopic('sr_latch')">SR Latch</div>
+        <div class="logicCard latchCard" onclick="openTopic('d_latch')">D Latch</div>
+        <div class="logicCard latchCard" onclick="openTopic('jk_latch')">JK Flip-Flop</div>
+        <div class="logicCard latchCard" onclick="openTopic('t_flipflop')">T Flip-Flop</div>
+        <div class="logicCard latchCard" onclick="openTopic('master_slave')">Master-Slave</div>
+    </div>
+</div>
+
+<!-- COMPONENTS -->
+<div class="sectionBox">
+    <h2>Computer Components</h2>
+
+    <div class="grid">
+        <div class="logicCard compCard" onclick="openTopic('cpu')">CPU</div>
+        <div class="logicCard compCard" onclick="openTopic('alu')">ALU</div>
+        <div class="logicCard compCard" onclick="openTopic('registers')">Registers</div>
+        <div class="logicCard compCard" onclick="openTopic('cache')">Cache</div>
+        <div class="logicCard compCard" onclick="openTopic('ram')">RAM</div>
+        <div class="logicCard compCard" onclick="openTopic('rom')">ROM</div>
+        <div class="logicCard compCard" onclick="openTopic('bus')">System Bus</div>
+    </div>
+</div>
+
+<script>
+function openTopic(id) {
+    localStorage.setItem("logicTopic", id);
+    window.location.href = "logic_info.html";
+}
+</script>
+
+</body>
+</html>

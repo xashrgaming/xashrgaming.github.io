@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Profile | xashr.lol</title>
+
+<style>
+    body {
+        background: #000;
+        color: white;
+        font-family: Arial;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #00aaff;
+    }
+
+    #avatarBox {
+        width: 160px;
+        height: 160px;
+        background: #111;
+        border: 3px solid #00aaff;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #avatarImg {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 10px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        margin-top: 10px;
+        background: #00aaff;
+        border: none;
+        border-radius: 8px;
+        color: black;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background: #0088cc;
+    }
+
+    #xpBar {
+        width: 300px;
+        height: 20px;
+        border-radius: 10px;
+        background: #333;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    #xpFill {
+        height: 100%;
+        background: #00ff99;
+        width: 0%;
+    }
+
+</style>
+</head>
+<body>
+
+    <button style="
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px 20px;
+    background: #00aaff;
+    border: none;
+    border-radius: 10px;
+    color: black;
+    cursor: pointer;
+    z-index: 5;
+" onclick="history.back()">← Back</button>
+
+
+<h1>Your Profile</h1>
+
+<!-- Avatar Section -->
+<div id="avatarBox">
+    <img id="avatarImg" src="">
+</div>
+
+<input type="file" id="filePicker" style="display:none" accept="image/*">
+<button class="btn" onclick="changeAvatar()">Change Profile Picture</button>
+
+<hr style="margin-top:30px;margin-bottom:20px">
+
+<!-- XP Section -->
+<h2>XP & Levels</h2>
+
+<div>Level: <span id="levelText">0</span></div>
+<div>XP: <span id="xpText">0</span> / <span id="nextXPText">100</span></div>
+
+<div id="xpBar"><div id="xpFill"></div></div>
+
+<button class="btn" onclick="addXP(25)">Gain 25 XP</button>
+<button class="btn" onclick="resetXP()">Reset XP</button>
+
+<script>
+
+/* ----------------------------------------------------
+   LOAD PROFILE DATA
+---------------------------------------------------- */
+let profile = JSON.parse(localStorage.getItem("profileData")) || {
+    xp: 0,
+    level: 1,
+    avatar: ""
+};
+
+/* ----------------------------------------------------
+   AVATAR HANDLING
+---------------------------------------------------- */
+function refreshAvatar() {
+    document.getElementById("avatarImg").src = profile.avatar || "https://via.placeholder.com/150";
+}
+
+function changeAvatar() {
+    document.getElementById("filePicker").click();
+}
+
+document.getElementById("filePicker").addEventListener("change", function() {
+    let file = this.files[0];
+    let reader = new FileReader();
+    reader.onload = () => {
+        profile.avatar = reader.result;
+        saveProfile();
+        refreshAvatar();
+    };
+    reader.readAsDataURL(file);
+});
+
+/* ----------------------------------------------------
+   XP SYSTEM
+---------------------------------------------------- */
+function xpNeeded(level) {
+    return 100 + (level - 1) * 50;
+}
+
+function addXP(amount) {
+    profile.xp += amount;
+
+    while (profile.xp >= xpNeeded(profile.level)) {
+        profile.xp -= xpNeeded(profile.level);
+        profile.level++;
+        alert("LEVEL UP! You are now level " + profile.level);
+    }
+
+    saveProfile();
+    refreshXP();
+}
+
+function resetXP() {
+    profile.xp = 0;
+    profile.level = 1;
+    saveProfile();
+    refreshXP();
+}
+
+function refreshXP() {
+    document.getElementById("levelText").textContent = profile.level;
+    document.getElementById("xpText").textContent = profile.xp;
+    document.getElementById("nextXPText").textContent = xpNeeded(profile.level);
+
+    let pct = (profile.xp / xpNeeded(profile.level)) * 100;
+    document.getElementById("xpFill").style.width = pct + "%";
+}
+
+/* ----------------------------------------------------
+   SAVE
+---------------------------------------------------- */
+function saveProfile() {
+    localStorage.setItem("profileData", JSON.stringify(profile));
+}
+
+/* ----------------------------------------------------
+   INITIALIZE
+---------------------------------------------------- */
+refreshAvatar();
+refreshXP();
+
+</script>
+
+</body>
+</html>
